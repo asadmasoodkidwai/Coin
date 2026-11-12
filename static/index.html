@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coin Board</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e7ecef;--s:#f7f9fa;--ink:#12222e;--mut:#5e6e7a;--line:#cdd6dc;--go:#2e6a50;--no:#8b2e3a;--brass:#9c7a2b;--wash:#eef2f4}
+@media(prefers-color-scheme:dark){:root{--bg:#10191f;--s:#18242c;--ink:#e6edf1;--mut:#9aabb6;--line:#2a3a45;--go:#6fbf9a;--no:#e08a95;--brass:#d2ad5c;--wash:#1d2a33}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+h1,h2,h3,.big{font-family:"Source Serif 4",Georgia,serif;font-weight:600;margin:0}
+h1{font-size:24px}h2{font-size:20px;margin:22px 0 10px}h3{font-size:16px;margin:16px 0 6px}.big{font-size:26px}
+.top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in,main{max-width:1000px;margin:0 auto;padding:0 16px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mut)}.pill i{width:9px;height:9px;border-radius:50%;background:var(--mut)}
+.pill.ok i{background:var(--go);animation:pulse 2s infinite}.pill.bad i{background:var(--no)}@keyframes pulse{50%{opacity:.35}}
+nav{display:flex;gap:2px;overflow-x:auto}
+nav a{padding:10px 14px;color:var(--mut);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap;font-weight:500}
+nav a.on{color:var(--ink);border-bottom-color:var(--brass)}
+main{padding-top:18px;padding-bottom:70px}.view{display:none}.view.on{display:block}
+.box,.tile{background:var(--s);border:1px solid var(--line);border-radius:4px;padding:14px 16px;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.grid .tile{margin-top:0}
+.tile b{display:block;font:600 25px "Source Serif 4",Georgia,serif}.tile span,.tag,small,label{font-size:13px;color:var(--mut)}label{font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.between{justify-content:space-between}
+button,input,select{font:inherit;color:inherit}
+button{background:var(--ink);color:var(--bg);border:0;border-radius:2px;padding:9px 14px;cursor:pointer;font-weight:500}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:2px;padding:8px 10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:2px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:transparent;color:var(--ink);border-radius:0;padding:8px 12px}.seg button.on{background:var(--ink);color:var(--bg)}
+.logo{position:relative;display:inline-grid;place-items:center;width:var(--z);height:var(--z);border-radius:50%;overflow:hidden;flex:none;color:#fff;font:600 calc(var(--z)*.36) "IBM Plex Sans",sans-serif}
+.logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:2px}
+.stk{display:inline-flex;align-items:center;gap:8px;min-width:0}.stn{display:flex;flex-direction:column;line-height:1.2;min-width:0}.stn b{font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--mut);font-weight:500;padding:6px 8px}
+td{padding:8px;border-top:1px solid var(--line);vertical-align:middle}td small{display:block}.wrap{overflow-x:auto}.up{color:var(--go)}.dn{color:var(--no)}
+.verdict{font:600 28px/1.2 "Source Serif 4",Georgia,serif;margin:10px 0 4px}.chart{width:100%;height:auto;display:block}
+.empty{padding:26px 8px;text-align:center;color:var(--mut)}
+.badge{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);margin-right:8px}
+.b-pos{color:var(--go);border-color:var(--go)}.b-neg{color:var(--no);border-color:var(--no)}.b-sev{background:var(--no);color:var(--bg);border-color:var(--no)}
+.art{padding:10px 0;border-top:1px solid var(--line)}.art a{color:var(--ink);font-weight:500}.art p{margin:4px 0 0;color:var(--mut);font-size:14px}
+.seat{display:grid;grid-template-columns:110px 1fr 60px;gap:4px 12px;padding:8px 0;border-top:1px solid var(--line);align-items:center}.seat small{grid-column:2/4}
+.bar{height:8px;background:var(--line);position:relative}.bar i{position:absolute;top:0;bottom:0;background:var(--go)}.bar i.neg{background:var(--no)}
+.bar:after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--mut)}
+.chk{display:flex;gap:10px;padding:3px 0;font-size:14px}.ok{color:var(--go)}.bad{color:var(--no)}
+.chair{border-left:3px solid var(--brass);padding-left:12px;margin:10px 0}
+.alloc{display:flex;height:16px;border-radius:2px;overflow:hidden;background:var(--line)}
+.msg{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-left:3px solid var(--brass);background:var(--s);font-size:14px}
+details.ev{padding:5px 0;border-top:1px solid var(--line);font-size:14px}details.ev summary{cursor:pointer;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.det{margin:6px 0 4px 14px;color:var(--mut)}.det div{padding:1px 0}.det b{color:var(--ink);font-weight:500}
+.pk{position:relative}.pk-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:7px 10px;text-align:left}
+.pk-pop{position:absolute;left:0;right:0;top:100%;z-index:30;background:var(--s);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:260px}
+.pk-q{width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0}.pk-list{max-height:320px;overflow:auto}
+.pk-i{display:flex;gap:10px;align-items:center;padding:7px 10px;cursor:pointer}.pk-i span:last-child{color:var(--mut);font-size:13px}.pk-i.act,.pk-i:hover{background:var(--wash)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:14px;padding:2px 4px 2px 6px;font-size:13px;margin:2px}.chip button{background:none;color:var(--mut);padding:0 6px}
+#toasts{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:3px;max-width:340px;font-size:14px}.toast.err{background:var(--no)}
+dialog{border:1px solid var(--line);border-radius:4px;background:var(--s);color:var(--ink);padding:18px;min-width:min(380px,90vw)}dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog form{display:flex;flex-direction:column;gap:10px}dialog .row{flex-direction:row-reverse;justify-content:flex-start}
+summary{cursor:pointer}
+#fund{min-width:min(420px,92vw)}#paypal-btn{min-height:56px;margin-top:12px}
+.ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin:10px 0}.rung{border:1px solid var(--line);padding:8px 10px;opacity:.65}.rung.on{border-color:var(--brass);background:var(--wash);opacity:1}.rung small{display:block}.rung.done{opacity:1}
+/* Keep controls and menus in document flow, with shrinkable content on narrow screens. */
+.top{position:relative}
+.grid{grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))}
+.row>*{min-width:0;max-width:100%}
+.grid>*,.ladder>*,.box,.tile,.stn{min-width:0;overflow-wrap:anywhere}
+.pk-pop{position:relative;top:auto;min-width:0;margin-top:6px;box-shadow:none}
+.pk-list{max-height:min(320px,45vh)}
+.pk-i span:last-child,.stn small{overflow-wrap:anywhere;white-space:normal}
+.seat{grid-template-columns:minmax(80px,110px) minmax(0,1fr) 48px}
+#toasts{max-width:calc(100vw - 28px);pointer-events:none}
+dialog{max-width:calc(100vw - 24px);max-height:85vh;overflow:auto}
+@media(max-width:520px){.box,.tile{padding:12px}.row{align-items:stretch}.row>label{align-self:center}
+ .row>[id$="-pick"]{min-width:0!important;flex-basis:100%!important}
+ nav a{padding:10px}.ladder{grid-template-columns:1fr}.seat{gap:6px}.seg{max-width:100%}}
+</style></head><body>
+<header class="top"><div class="top-in">
+  <div class="brand"><h1>Coin Board</h1><span id="live" class="pill"><i></i><span>Connecting</span></span></div>
+  <nav id="nav"><a href="#home" data-v="home">Home</a><a href="#portfolio" data-v="portfolio">Portfolio</a><a href="#history" data-v="history">History</a><a href="#ask" data-v="ask">Ask the Board</a></nav>
+</div></header>
+<main>
+<div id="msg"></div>
+
+<section id="v-home" class="view on">
+  <div class="grid" id="h-tiles"></div>
+  <div class="row" style="margin-top:12px"><button data-act="fund">Add funds</button><button class="ghost" data-act="wd">Withdraw profit</button><button class="ghost" data-act="settle">Close the day</button><button data-act="resume" id="resume" hidden>Resume trading</button></div>
+  <p class="tag">Close the day tallies today's profit or loss, moves your share into reserve and withdrawable, and starts a fresh daily loss budget. Trading does not stop and nothing needs to reopen.</p>
+  <div id="h-pending"></div>
+  <div class="box" id="h-paypal"></div>
+  <div class="box">
+    <h2 style="margin-top:0">How Coin Board trades for you</h2>
+    <div class="row"><label style="width:90px">Who decides</label><span class="seg" id="c-mode"></span></div>
+    <div class="row" style="margin-top:8px"><label style="width:90px">Risk style</label><span class="seg" id="c-preset"></span></div>
+    <p class="tag" id="c-rule"></p>
+    <div class="row"><label><input type="checkbox" id="scan-on" onchange="saveScan()"> Scan my watchlist automatically</label><button class="ghost" data-act="scannow">Scan now</button></div>
+    <p class="tag" id="c-scan"></p>
+  </div>
+  <div class="box" id="h-reason"></div>
+  <details class="box"><summary><b>More settings</b></summary>
+    <div class="row" style="margin-top:10px"><label>When you win, keep</label><input id="rs" type="number" min="0" max="100" style="width:70px"><label>% in reserve, take out</label><input id="wp" type="number" min="0" max="100" style="width:70px"><label>%, reinvest the rest</label><button class="ghost" onclick="saveSplit()">Save</button></div>
+    <div class="row" style="margin-top:10px"><label><input type="checkbox" id="ac" onchange="saveClose()"> Close the day automatically at</label><input id="ct" type="time" style="width:120px" onchange="saveClose()"><label>US Eastern, weekdays</label></div>
+    <div class="row" style="margin-top:10px"><label>Scan every</label><input id="sm" type="number" min="5" max="240" style="width:70px" onchange="saveScan()"><label>minutes, reviewing the best</label><input id="st" type="number" min="1" max="30" style="width:60px" onchange="saveScan()"><label>in depth</label><label><input type="checkbox" id="sa" onchange="saveScan()"> also when US markets are closed</label></div>
+    <h3>Student model</h3>
+    <div class="row"><label>Role</label><select id="sr" onchange="saveStudent()"><option value="auto">Promote automatically</option><option value="advisor">Always a second voice</option><option value="chair">Always the decider</option><option value="off">Off</option></select></div>
+    <div class="row" style="margin-top:8px"><label>Second voice after</label><input id="sad" type="number" min="1" max="365" style="width:70px" onchange="saveStudent()"><label>days, decider after</label><input id="scd" type="number" min="1" max="730" style="width:70px" onchange="saveStudent()"><label>days. Spot-check with the main model on</label><input id="scr" type="number" min="0" max="100" style="width:70px" onchange="saveStudent()"><label>% of its decisions</label></div>
+    <p class="tag">Promotion also needs proof, not just time: enough observed decisions and agreement with the main model, and for the decider role, results on past decisions at least as good as the main model's. It is demoted automatically if it slips.</p>
+    <h3>Watchlist</h3><div id="chips"></div>
+    <div class="row" style="margin-top:8px"><div id="wl-pick" style="min-width:260px;flex:1"></div><button class="ghost" data-act="wlpreset" data-v="@top30">Top 30 US</button><button class="ghost" data-act="wlpreset" data-v="@top100">Top 100 US</button></div>
+  </details>
+  <h2>Recent activity</h2><div class="box" id="h-recent" style="margin-top:0"></div>
+</section>
+
+<section id="v-portfolio" class="view">
+  <div class="box" id="p-alloc"></div>
+  <div class="box"><div class="wrap" id="p-table"></div></div>
+  <div id="p-review"></div>
+</section>
+
+<section id="v-history" class="view">
+  <div class="seg" id="h-sub"></div>
+  <div id="hs-transactions" class="hsub">
+    <div class="box"><div class="row"><select id="tx-type" onchange="txKind=this.value;txLimit=25;loadTx()" aria-label="Transaction type"><option value="">All transactions</option><option value="buy">Buys</option><option value="sell">Sells</option><option value="deposit">Deposits</option><option value="withdraw">Withdrawals</option></select><div id="tx-pick" style="min-width:240px"></div><a id="tx-csv" href="/api/events.csv" class="tag">Download as CSV</a></div>
+    <div class="wrap" style="margin-top:8px"><table><thead><tr><th>Time</th><th>Type</th><th>Stock</th><th>Shares</th><th>Price</th><th>Amount</th><th>Result</th><th>Reference</th></tr></thead><tbody id="tx-body"></tbody></table></div>
+    <p><button class="ghost" id="tx-more" data-act="txmore" hidden>Show more</button></p></div>
+  </div>
+  <div id="hs-account" class="hsub" hidden>
+    <div class="box"><div class="row" id="ac-ser"></div><svg id="ac-svg" class="chart"></svg><div id="ac-tip" class="tag" aria-live="polite">Each point is a change to your account. Hover or tap the chart to read values.</div>
+    <h3>Daily results</h3><svg id="ac-days" class="chart" viewBox="0 0 640 120"></svg><div id="ac-dayinfo" class="tag">Select a bar to see where that day's money went.</div></div>
+  </div>
+  <div id="hs-audit" class="hsub" hidden>
+    <div class="box"><div class="row" id="au-filters"></div><div class="row" style="margin:10px 0"><div id="au-pick" style="min-width:240px"></div><a id="au-csv" href="/api/events.csv" class="tag">Download as CSV</a></div>
+    <div id="au-list"></div><p><button class="ghost" id="au-more" data-act="aumore" hidden>Show more</button></p></div>
+  </div>
+</section>
+
+<section id="v-ask" class="view">
+  <div class="box"><div class="row"><div id="ask-pick" style="flex:1;min-width:240px"></div><button id="ask-go" data-act="askgo">Ask the board</button></div>
+  <p class="tag" style="margin-bottom:0">Pick a stock by name or ticker. The live chart appears straight away. Asking the board adds the evidence, the prediction and a detailed explanation.</p></div>
+  <div id="askhead"></div><div id="asktabs"></div><div class="box" id="askpanel" hidden></div>
+  <div id="askempty" class="empty">Choose a stock above to begin.</div>
+</section>
+</main>
+<div id="toasts"></div>
+<dialog id="fund"><div style="display:flex;flex-direction:column;gap:10px"><div class="row between"><h3 style="margin:0">Add funds</h3><button class="ghost" data-act="fundclose" aria-label="Close" style="padding:2px 10px">&times;</button></div><div id="fund-body"></div></div></dialog>
+<dialog id="dlg"><form method="dialog"><h3 id="dt" style="margin:0"></h3><p id="db" class="tag" style="margin:0"></p><input id="di" hidden><div class="row"><button value="yes" id="dok">OK</button><button value="no" class="ghost">Cancel</button></div></form></dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const m=n=>'$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const sg=v=>(v>=0?'+':'-')+m(Math.abs(v)),pc=v=>(v>=0?'+':'')+(v*100).toFixed(1)+'%';
+const when=ts=>new Date(ts*1000).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const dshort=ms=>new Date(ms).toLocaleDateString([],{month:'short',day:'numeric'}),tshort=ms=>new Date(ms).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const ageH=h=>h==null?'':h<1?'under 1h ago':h<48?Math.round(h)+'h ago':Math.round(h/24)+'d ago';
+const TOKEN=localStorage.getItem('coin_token')||'';
+async function api(p,b){const r=await fetch(p,b===undefined?{}:{method:'POST',headers:{'content-type':'application/json','x-token':TOKEN},body:JSON.stringify(b)});let j={};try{j=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(typeof j.detail==='string'?j.detail:'Request failed ('+r.status+')');return j}
+const RS={stop:'stop-loss hit',target:'target reached',manual:'sold by you',board:'board decision'};
+const KL={scan:'Scan',scan_error:'Scan problem',board:'Board',buy:'Bought',sell:'Sold',deposit:'Deposit',withdraw:'Withdrawal',settle:'Day closed',auto_close:'Auto close'};
+let S=null,STOCKS=[],NAME={},PD=[],view='home',sub='transactions',H={points:[],days:[]},lastEv=0,reviewing=false,RV=[];
+let pkAsk,pkWl,pkTx,pkAu,askSym='',ANA=null,thinking=false,askTab='market',rng='1d',MK={};
+let txKind='',txSym='',txLimit=25,auKind='all',auSym='',auLimit=20;const ser={total:true,deposited:true,reserve:false,cash:false};
+
+/* ---------- logos, stock cells, pickers ---------- */
+const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
+const logo=(s,z=28)=>`<span class="logo" style="--z:${z}px;background:hsl(${hue(s)} 38% 40%)"><b>${esc((s.match(/[A-Z]/g)||[s]).slice(0,2).join(''))}</b><img alt="" loading="lazy" src="https://financialmodelingprep.com/image-stock/${encodeURIComponent(s)}.png" onerror="this.remove()"></span>`;
+const stockCell=s=>`<span class="stk">${logo(s,26)}<span class="stn"><b>${esc(s)}</b><small>${esc(NAME[s]||'')}</small></span></span>`;
+const allPickers=[];
+function mkPicker(host,o){let val=o.value||'',act=0,items=[];allPickers.push(host);host.classList.add('pk');
+ host.innerHTML='<button type="button" class="pk-btn" aria-haspopup="listbox"></button><div class="pk-pop" hidden><input class="pk-q" placeholder="Search company or ticker" aria-label="Search stocks"><div class="pk-list" role="listbox"></div></div>';
+ const btn=host.querySelector('.pk-btn'),pop=host.querySelector('.pk-pop'),q=host.querySelector('.pk-q'),list=host.querySelector('.pk-list');
+ const label=()=>{btn.innerHTML=(val?stockCell(val):`<span class="tag">${esc(o.all||o.ph||'Choose a stock')}</span>`)+'<span class="tag">&#9662;</span>'};
+ const build=()=>{const t=q.value.trim().toLowerCase();items=[];if(o.all&&!t)items.push({symbol:'',name:'Show everything'});
+  STOCKS.forEach(s=>{if(!t||s.symbol.toLowerCase().includes(t)||s.name.toLowerCase().includes(t))items.push(s)});
+  const up=q.value.trim().toUpperCase();if(/^[A-Z][A-Z.\-]{0,9}$/.test(up)&&!STOCKS.some(s=>s.symbol===up)&&(!items.length||up.length<=5))items.push({symbol:up,name:'Use this ticker'});
+  act=0;list.innerHTML=items.slice(0,80).map((s,i)=>`<div role="option" class="pk-i${i===0?' act':''}" data-i="${i}">${s.symbol?logo(s.symbol,24):''}<b>${esc(s.symbol||o.all||'All')}</b><span>${esc(s.name)}</span></div>`).join('')||'<div class="tag" style="padding:8px">No match</div>'};
+ const mark=()=>[...list.children].forEach((c,i)=>c.classList.toggle('act',i===act));
+ const open=()=>{allPickers.forEach(h=>h!==host&&h.querySelector('.pk-pop').setAttribute('hidden',''));pop.hidden=false;q.value='';build();q.focus()};
+ const pick=i=>{const s=items[i];if(!s)return;pop.hidden=true;if(!o.reset)val=s.symbol;label();o.onPick&&o.onPick(s.symbol)};
+ btn.onclick=()=>pop.hidden?open():pop.hidden=true;q.oninput=build;
+ q.onkeydown=e=>{if(e.key==='ArrowDown'){act=Math.min(items.length-1,act+1);mark();e.preventDefault()}else if(e.key==='ArrowUp'){act=Math.max(0,act-1);mark();e.preventDefault()}else if(e.key==='Enter'){pick(act);e.preventDefault()}else if(e.key==='Escape'){pop.hidden=true;btn.focus()}};
+ list.onclick=e=>{const it=e.target.closest('.pk-i');if(it)pick(+it.dataset.i)};
+ label();return{set(s){val=s||'';label()},get:()=>val,refresh:label}}
+document.addEventListener('mousedown',e=>allPickers.forEach(h=>{if(!h.contains(e.target))h.querySelector('.pk-pop').hidden=true}));
+
+/* ---------- charts ---------- */
+function chart(svg,tip,c){const W=640,H=c.h||250,L=62,R=14,T=12,B=26,bp=c.band?c.band.pts:[];
+ const pts=c.series.flatMap(s=>s.pts),xs=pts.map(p=>p[0]).concat(bp.map(p=>p[0])),ys=pts.map(p=>p[1]).concat(bp.flatMap(p=>[p[1],p[2]]));
+ svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ if(xs.length<2){svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--mut)" font-size="14">${esc(c.empty||'Nothing to show yet')}</text>`;tip.textContent='';return}
+ let x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);if(x1===x0)x1=x0+1;if(y1-y0<1e-9){y0-=1;y1+=1}const pd=(y1-y0)*.08;y0-=pd;y1+=pd;
+ const X=v=>L+(v-x0)/(x1-x0)*(W-L-R),Y=v=>T+(y1-v)/(y1-y0)*(H-T-B),yf=c.yFmt||(v=>'$'+Math.round(v).toLocaleString());
+ let g='';for(let k=0;k<=4;k++){const v=y0+(y1-y0)*k/4;g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${yf(v)}</text>`}
+ for(let k=0;k<=3;k++){const v=x0+(x1-x0)*k/3;g+=`<text x="${X(v)}" y="${H-6}" text-anchor="${k===0?'start':k===3?'end':'middle'}" font-size="11" fill="var(--mut)">${esc(c.xFmt(v))}</text>`}
+ if(c.band)g+=`<polygon fill="${c.band.color}" opacity=".18" points="${bp.map(p=>X(p[0])+','+Y(p[2])).join(' ')} ${bp.slice().reverse().map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`;
+ g+=c.series.map(s=>`<polyline fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" ${s.dash?`stroke-dasharray="${s.dash}"`:''} points="${s.pts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`).join('');
+ svg.innerHTML=g+'<g class="hl"></g>';const hl=svg.querySelector('.hl'),all=c.series.flatMap((s,si)=>s.pts.map(p=>({si,p})));
+ const at=e=>{const r=svg.getBoundingClientRect(),px=((e.touches?e.touches[0].clientX:e.clientX)-r.left)/r.width*W,xv=x0+(px-L)/(W-L-R)*(x1-x0);
+  let b=all[0],d=1e30;for(const a of all){const dd=Math.abs(a.p[0]-xv);if(dd<d){d=dd;b=a}}
+  hl.innerHTML=`<line x1="${X(b.p[0])}" x2="${X(b.p[0])}" y1="${T}" y2="${H-B}" stroke="var(--mut)"/><circle cx="${X(b.p[0])}" cy="${Y(b.p[1])}" r="4" fill="${c.series[b.si].color}"/>`;
+  tip.innerHTML=c.tip?c.tip(b.p[0],b.si,b.p):`<b>${esc(c.xFmt(b.p[0]))}</b> ${esc(c.series[b.si].label)} ${yf(b.p[1])}`};
+ svg.onmousemove=at;svg.ontouchmove=at;svg.onmouseleave=()=>{hl.innerHTML=''}}
+
+/* ---------- small helpers ---------- */
+function seg(id,opts,cur,act){$(id).innerHTML=opts.map(([v,l])=>`<button data-act="${act}" data-v="${v}" class="${v===cur?'on':''}">${esc(l)}</button>`).join('')}
+function setv(id,v){const e=$(id);if(e&&document.activeElement!==e){if(e.type==='checkbox')e.checked=!!v;else e.value=v}}
+function toast(t,k){const d=document.createElement('div');d.className='toast'+(k==='err'?' err':'');d.textContent=t;$('toasts').appendChild(d);setTimeout(()=>d.remove(),k==='err'?7000:5000)}
+function say(t){$('msg').innerHTML=t?`<div class="msg">${esc(t)} <button class="ghost" style="padding:2px 8px;margin-left:8px" onclick="say('')">Dismiss</button></div>`:''}
+function dlg(o){return new Promise(res=>{const d=$('dlg'),i=$('di');$('dt').textContent=o.title;$('db').textContent=o.body||'';i.hidden=!o.input;i.value=o.def||'';$('dok').textContent=o.ok||'OK';
+ d.onclose=()=>res(d.returnValue==='yes'?(o.input?i.value:true):null);d.showModal();if(o.input)i.focus()})}
+async function go(fn){try{await fn()}catch(e){toast(e.message,'err')}refresh()}
+const headline=o=>{const p=o.proposal,a=o.verdict.action,n=NAME[p.symbol]||p.symbol;return a==='ignore'?`Skip ${n}`:p.side==='none'?(a==='sell'?`Avoid ${n}: the board is bearish and you do not own it`:`Pass on ${n}: no shares fit your limits`):a==='buy'?`Buy ${p.qty} ${n} at ${m(p.price)}`:`Sell ${p.qty} ${n} at ${m(p.price)}`};
+const refText=e=>{const x=e.data;return e.kind==='deposit'?(x.capture_id?'PayPal capture '+x.capture_id:x.demo?'Demo funds':x.ref||''):e.kind==='withdraw'?(x.payout_id?(x.simulated?'Demo payout ':'PayPal payout ')+x.payout_id:''):''};
+function drawPaypal(){const p=S.paypal||{},ev=S.events.filter(e=>e.kind==='deposit'||e.kind==='withdraw').slice(0,4);
+ $('h-paypal').innerHTML=`<div class="row between"><h2 style="margin:0">PayPal</h2><span class="badge ${p.configured?'b-pos':''}" style="margin:0">${p.configured?'Sandbox connected':'Demo mode'}</span></div>`+
+ (p.configured?`<p class="tag">Environment: PayPal Sandbox, test money only. App client ID ${esc(p.client_id_masked)}. Withdrawals are paid to ${p.payout_email?esc(p.payout_email):'<b>no account yet</b> (set PAYPAL_PAYOUT_EMAIL)'}.</p>`
+  :`<p class="tag">PayPal is not connected, so funds are <b>demo funds</b>. Connect a free PayPal developer sandbox to use real PayPal Checkout and Payouts. The steps are in read.md.</p>`)+
+ `<div class="row"><button data-act="fund">Add funds</button><button class="ghost" data-act="wd">Withdraw profit</button><a class="tag" target="_blank" rel="noopener noreferrer" href="${p.configured?'https://www.sandbox.paypal.com/':'https://developer.paypal.com/dashboard/'}">${p.configured?'Open PayPal Sandbox':'PayPal developer dashboard'}</a></div>`+
+ (ev.length?`<h3>Recent PayPal activity</h3>`+ev.map(e=>`<div class="row between" style="padding:4px 0;border-top:1px solid var(--line)"><span>${e.kind==='deposit'?'Deposit':'Payout'} ${m(e.data.amount)}</span><span class="tag">${esc(refText(e))}, ${when(e.ts)}</span></div>`).join(''):'')}
+async function loadSdk(cid){if(window.paypal)return;await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(cid)+'&currency=USD&intent=capture';s.onload=res;s.onerror=()=>rej(new Error('Could not load PayPal. Check your internet connection and any ad blocker.'));document.head.appendChild(s)})}
+async function renderPayPal(cfg){try{await loadSdk(cfg.client_id)}catch(e){$('paypal-btn').innerHTML=`<div class="msg">${esc(e.message)}</div>`;return}
+ paypal.Buttons({style:{layout:'vertical',color:'gold',shape:'rect',label:'paypal'},
+  createOrder:async()=>{const a=+$('f-amt').value;if(!(a>=1&&a<=100000))throw new Error('Enter an amount between $1 and $100,000');return (await api('/api/paypal/orders',{amount:a})).id},
+  onApprove:async data=>{try{const d=await api('/api/paypal/orders/'+data.orderID+'/capture',{});$('fund').close();toast(d.credited?'PayPal payment received. Funds added.':'This payment was already added.')}catch(e){toast(e.message,'err')}refresh()},
+  onCancel:()=>toast('Payment cancelled. Nothing was charged.'),onError:e=>toast('PayPal problem: '+((e&&e.message)||e),'err')}).render('#paypal-btn')}
+async function openFund(){let cfg={configured:false};try{cfg=await api('/api/paypal/config')}catch(e){}
+ $('fund-body').innerHTML=`<label for="f-amt">Amount (USD)</label><div class="row"><input id="f-amt" type="number" min="1" max="100000" value="10000" style="width:140px">${[100,1000,10000].map(v=>`<button class="ghost" data-act="famt" data-v="${v}">$${v.toLocaleString()}</button>`).join('')}</div>`+
+  (cfg.configured?`<p class="tag">Pay with a PayPal <b>sandbox</b> buyer account. No real money moves.</p><div id="paypal-btn"></div>`
+   :`<div class="msg">PayPal is not connected, so this adds <b>demo funds</b> only. To use real PayPal Checkout in the sandbox, add your keys to .env (see read.md).</div><p><button data-act="demofund">Add demo funds</button></p>`);
+ $('fund').showModal();if(cfg.configured)renderPayPal(cfg)}
+function evText(e){const x=e.data;switch(e.kind){
+ case'board':return `${x.symbol}: ${x.action}${x.qty?' '+x.qty+' at '+m(x.price):''}, ${Math.round(x.confidence)}% confident, safety checks ${x.firewall||'not needed'}`;
+ case'buy':return `Bought ${x.qty} ${x.symbol} at ${m(x.price)}`;
+ case'sell':return `Sold ${x.qty} ${x.symbol} at ${m(x.price)} (${RS[x.reason]||'board decision'}), result ${sg(x.pnl)}`;
+ case'deposit':return x.capture_id?`Added ${m(x.amount)} via PayPal`:x.demo?`Added ${m(x.amount)} demo funds`:`Added ${m(x.amount)}`;case'withdraw':return x.payout_id?`Withdrew ${m(x.amount)} to PayPal`+(x.simulated?' (demo)':''):`Withdrew ${m(x.amount)}`;
+ case'settle':return `Day closed: ${sg(x.pnl)} result`;case'auto_close':return 'Automatic daily close ran';
+ case'scan':return `Scan: screened ${x.screened}, reviewed ${x.deep.length} in depth`;
+ case'scan_error':return `Scan problem for ${x.symbol}: ${x.error}`;default:return e.kind}}
+function detail(e){const x=e.data;if(e.kind!=='board')return Object.entries(x).map(([k,v])=>`<div><b>${esc(k)}</b> ${esc(typeof v==='number'?+v.toFixed(2):typeof v==='object'?JSON.stringify(v):v)}</div>`).join('');
+ return `<div><b>Reasoning</b> ${esc(x.reasoning)}</div><div><b>Disagreement</b> ${esc(x.dissent)}</div><div><b>Decided by</b> ${esc(x.engine)}</div><div><b>Prices</b> ${x.data_source==='demo'?'demo data':'live'}</div>`+(x.second?`<div><b>Second voice</b> ${esc(x.second.action)} ${Math.round(x.second.confidence)}%, ${esc(x.second.effect)}</div>`:'')+(x.firewall?`<div><b>Safety checks</b> ${esc(x.firewall_reason)}</div>`:'')+(x.reports||[]).map(r=>`<div><b>${esc(r.name)}</b> ${r.score>0?'+':''}${r.score.toFixed(2)}, ${esc(r.summary)} (${esc(r.model)})</div>`).join('')}
+
+/* ---------- routing ---------- */
+function route(){const [v,a]=location.hash.slice(1).split('/');view=['home','portfolio','history','ask'].includes(v)?v:'home';
+ document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+view));
+ document.querySelectorAll('#nav a').forEach(e=>e.classList.toggle('on',e.dataset.v===view));
+ if(view==='history'){if(['transactions','account','audit'].includes(a))sub=a;drawHistory()}
+ if(view==='ask'){const s=(a||'').toUpperCase();if(s)pickAsk(s);else drawAskAll()}}
+window.addEventListener('hashchange',route);
+
+/* ---------- home ---------- */
+function drawHome(){drawReason();drawPaypal();const s=S.state,pos=S.positions,pv=pos.reduce((a,p)=>a+p.qty*(p.price||p.avg),0),total=s.cash+s.reserve+s.withdrawable+pv,net=total+s.withdrawn-s.deposited;
+ $('h-tiles').innerHTML=[['Total value',m(total),s.deposited?sg(net)+' since you started':'Add funds to begin'],['Trading capital',m(s.cash),'Cash the board can invest'],['Safety reserve',m(s.reserve),'Refills losses so you do not top up'],['Profit you can withdraw',m(s.withdrawable),'Sent to your PayPal']].map(([a,b,c])=>`<div class="tile"><span>${a}</span><b>${b}</b><span>${c}</span></div>`).join('');
+ $('resume').hidden=!s.paused;
+ seg('c-mode',[['observe','Just watch'],['approve','I approve each trade'],['autopilot','Board trades alone']],s.mode,'mode');
+ seg('c-preset',S.presets.map(p=>[p,p[0].toUpperCase()+p.slice(1)]),s.preset,'preset');
+ $('c-rule').textContent=`A single trade can lose at most ${S.limits.max_loss_pct}% of your capital, no position exceeds ${S.limits.max_pos_pct}%, and the board must be ${S.limits.min_conf}% confident to buy.`;
+ setv('scan-on',s.scan_enabled);setv('sm',s.scan_minutes);setv('st',s.scan_top);setv('sa',s.scan_always);setv('rs',s.split.reserve);setv('wp',s.split.withdraw);setv('ac',s.auto_close);setv('ct',s.close_time);setv('sr',s.student_role);setv('sad',s.student_advisor_days);setv('scd',s.student_chair_days);setv('scr',Math.round(s.student_check_rate*100));
+ $('c-scan').textContent=S.scan_status+(s.last_scan?'  Last scan '+when(s.last_scan)+'.':'');
+ $('chips').innerHTML=s.watchlist.map(x=>`<span class="chip">${logo(x,20)} ${esc(x)} <button aria-label="Remove ${esc(x)}" data-act="rmw" data-sym="${esc(x)}">&times;</button></span>`).join('');
+ $('h-recent').innerHTML=S.events.slice(0,7).map(e=>`<div class="row" style="padding:5px 0;border-top:1px solid var(--line)">${e.data.symbol?logo(e.data.symbol,22):'<span style="width:22px"></span>'}<span class="tag">${when(e.ts)}</span><span>${esc(evText(e))}</span></div>`).join('')||'<div class="empty">Nothing yet. Add funds, then ask the board about a stock.</div>';
+ $('h-pending').innerHTML=(s.paused?'<div class="msg">Trading is paused after a large drop. Review your positions, then press Resume trading.</div>':'')+(PD.length?`<h2>Waiting for your approval</h2><div class="box" style="margin-top:0">`+PD.map((o,i)=>`<div class="row between" style="padding:6px 0;border-top:1px solid var(--line)"><span class="stk">${logo(o.proposal.symbol,28)}<span class="stn"><b>${esc(headline(o))}</b><small>${Math.round(o.verdict.confidence)}% confident, ${when(o.ts)}</small></span></span><span class="row"><button data-act="approvep" data-id="${o.proposal.id}">Approve</button><button class="ghost" data-act="opena" data-i="${i}">Details</button></span></div>`).join('')+'</div>':'')}
+const STG=[['apprentice','Apprentice','Watches the main model and learns from it, from your choices and from real outcomes'],['advisor','Advisor','A second voice on the board: it can shrink or cancel a buy, never force one'],['chair','Chair','Decides most calls itself and asks the main model when unsure']];
+function drawReason(){const r=S.reasoning||{},st=r.student||{},cur=st.stage||'apprentice',sh=st.shadow||{n:0},tm=x=>new Date(x*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+ const row=(n,b)=>{let s='Not set up',c='';if(b.configured){if(b.paused_until){s='Paused until '+tm(b.paused_until);c='dn'}else{s='Ready';c='up'}}
+  return `<div class="row between" style="padding:6px 0;border-top:1px solid var(--line)"><span><b>${n}</b> <span class="tag">${esc(b.model||'')}</span></span><span class="${c}">${s}</span></div>`+(b.configured&&b.last_error?`<div class="tag" style="padding:0 0 6px">Last problem: ${esc(b.last_error.slice(0,220))}</div>`:'')};
+ const llm=r.main&&r.main.configured&&!r.main.paused_until?'the main model':r.backup&&r.backup.configured&&!r.backup.paused_until?'the backup model':null;
+ const active=cur==='chair'&&st.ready?'the student model (it asks the main model when unsure)':llm?llm+(cur==='advisor'?', with the student as a second voice':''):st.ready&&cur!=='off'?'the student model':'the fixed rule';
+ const idx=['apprentice','advisor','chair'].indexOf(cur);
+ $('h-reason').innerHTML=`<h2 style="margin-top:0">Reasoning models</h2><p class="tag">Now deciding with <b style="color:var(--ink)">${active}</b>. If one stops, for example at a rate limit, the next one takes over automatically.</p>`+row('Main',r.main||{})+row('Backup',r.backup||{})+
+ `<h3>The student model's role</h3>`+(cur==='off'?'<p class="tag">The student model is turned off in More settings.</p>':`<div class="ladder">${STG.map(([k,n,d],i)=>`<div class="rung ${k===cur?'on':i<idx?'done':''}"><b>${i+1}. ${n}${k===cur?' (now)':''}</b><small>${d}</small></div>`).join('')}</div>`+
+ (cur!=='chair'&&(st.need||[]).length?`<p class="tag">Needed for the next step: ${st.need.map(esc).join('; ')}.</p>`:cur==='chair'?'<p class="tag">It has earned the top role. It is demoted automatically if its results fall behind the main model.</p>':'')+
+ `<p class="tag">Watching for ${(st.age_days||0).toFixed(1)} days: ${st.observations||0} decisions observed, ${st.with_outcomes||0} with known outcomes, ${st.with_feedback||0} with your feedback.${st.trained_at?' Last trained '+when(st.trained_at)+'.':''}${st.ready&&st.agreement!=null?' Agrees with the main model '+Math.round(st.agreement*100)+'% of the time.':''}</p>`+
+ (sh.n?`<p class="tag">On the latest ${sh.n} decisions with known outcomes, the main model averaged ${pc(sh.teacher_mean)} per decision and the student would have averaged ${pc(sh.student_mean)}. Small samples are noisy.</p>`:''))+
+ `<div class="row between" style="padding:6px 0;border-top:1px solid var(--line)"><span><b>Fixed rule</b> <span class="tag">last resort</span></span><span class="up">Always available</span></div>`+
+ (st.historical?`<p class="tag">Historical outcome model loaded. Continuous learning checks every five minutes and retrains after 10 newly completed outcomes or 20 new observations. Historical validation accuracy: ${st.validation?(100*st.validation.accuracy).toFixed(1)+'% (majority baseline '+(100*st.validation.majority_baseline).toFixed(1)+'%)':'unavailable'}. This is a price-pattern model, not a language reasoning model. Profitability is not guaranteed.</p>`:'')+
+ `<div class="row"><button class="ghost" data-act="train">Train student now</button><a class="tag" href="/api/learning/model">Download trained model</a><a class="tag" href="/api/learning/export">Download training data</a><a class="tag" href="/api/learning/export?good=1">Download decisions that worked</a></div>`}
+const saveStudent=()=>go(()=>api('/api/settings',{student_role:$('sr').value,student_advisor_days:+$('sad').value||14,student_chair_days:+$('scd').value||60,student_check_rate:(+$('scr').value||0)/100}));
+const saveScan=()=>go(()=>api('/api/settings',{scan_enabled:$('scan-on').checked,scan_minutes:+$('sm').value||30,scan_top:+$('st').value||8,scan_always:$('sa').checked}));
+const saveSplit=()=>go(()=>api('/api/settings',{reserve:+$('rs').value,withdraw:+$('wp').value}));
+const saveClose=()=>go(()=>api('/api/settings',{auto_close:$('ac').checked,close_time:$('ct').value||'16:15'}));
+
+/* ---------- portfolio ---------- */
+function drawPortfolio(){const s=S.state,P=S.positions,pv=P.reduce((a,p)=>a+p.qty*(p.price||p.avg),0),total=s.cash+s.reserve+s.withdrawable+pv||1;
+ const seg4=[['Invested',pv,'var(--ink)'],['Trading cash',s.cash,'var(--brass)'],['Reserve',s.reserve,'var(--go)'],['Withdrawable',s.withdrawable,'var(--mut)']];
+ $('p-alloc').innerHTML=`<h3 style="margin-top:0">Where your money is</h3><div class="alloc">${seg4.map(([l,v,c])=>`<div title="${l} ${m(v)}" style="width:${v/total*100}%;background:${c}"></div>`).join('')}</div><div class="row" style="margin-top:8px">${seg4.map(([l,v,c])=>`<span class="tag"><span style="display:inline-block;width:10px;height:10px;background:${c};margin-right:5px"></span>${l} ${m(v)} (${(v/total*100).toFixed(0)}%)</span>`).join('')}</div>`;
+ $('p-table').innerHTML=P.length?`<table><thead><tr><th>Stock</th><th>Shares</th><th>Bought at</th><th>Now</th><th>Value</th><th>Result</th><th>Sells automatically at</th><th></th></tr></thead><tbody>`+P.map(p=>{const v=p.price?p.qty*p.price:null,r=p.price?(p.price-p.avg)*p.qty:null;
+  return `<tr><td><a href="#ask/${esc(p.symbol)}" style="color:inherit;text-decoration:none">${stockCell(p.symbol)}</a></td><td>${p.qty}</td><td>${m(p.avg)}</td><td>${p.price?m(p.price):'<span class="tag">checking</span>'}</td><td>${v!=null?m(v):''}</td><td class="${r>=0?'up':'dn'}">${r!=null?sg(r)+'<small>'+pc(p.price/p.avg-1)+'</small>':''}</td><td>${p.stop?`stop ${m(p.stop)}<small>target ${m(p.target)}</small>`:'none'}</td><td><button class="ghost" data-act="sell" data-sym="${esc(p.symbol)}">Sell</button></td></tr>`}).join('')+`</tbody></table><p><button class="ghost" data-act="review">Ask the board about everything I own</button></p>`:'<div class="empty">You do not own anything yet. When the board buys something it appears here with its stop and target prices, and you can sell it any time.</div>';
+ $('p-review').innerHTML=reviewing?'<div class="box tag">The board is reviewing each position...</div>':RV.length?`<div class="box"><h3 style="margin-top:0">Board review of what you own</h3>`+RV.map((o,i)=>`<div class="row between" style="padding:6px 0;border-top:1px solid var(--line)"><span class="stk">${logo(o.proposal.symbol,24)}<b>${esc(headline(o))}</b></span><span class="row"><span class="tag">${Math.round(o.verdict.confidence)}% confident${o.executed?', done automatically':''}</span><button class="ghost" data-act="openrv" data-i="${i}">Details</button></span></div>`).join('')+'</div>':''}
+
+/* ---------- history ---------- */
+function drawHistory(){document.querySelectorAll('.hsub').forEach(e=>e.hidden=e.id!=='hs-'+sub);seg('h-sub',[['transactions','Transaction history'],['account','Account over time'],['audit','Audit trail']],sub,'sub');loadHistory()}
+async function loadHistory(){try{if(sub==='transactions')await loadTx();else if(sub==='account')await loadAcct();else await loadAudit()}catch(e){}}
+const TXK={'':'buy,sell,deposit,withdraw',buy:'buy',sell:'sell',deposit:'deposit',withdraw:'withdraw'};
+async function loadTx(){const q=`kind=${TXK[txKind]}&symbol=${encodeURIComponent(txSym)}`,ev=await api(`/api/events?${q}&limit=${txLimit+1}`);$('tx-csv').href=`/api/events.csv?${q}`;
+ $('tx-body').innerHTML=ev.slice(0,txLimit).map(e=>{const x=e.data,t={buy:'Buy',sell:'Sell',deposit:'Deposit',withdraw:'Withdrawal'}[e.kind];
+  return `<tr><td>${when(e.ts)}</td><td>${t}</td><td>${x.symbol?stockCell(x.symbol):'<span class="tag">Cash</span>'}</td><td>${x.qty??''}</td><td>${x.price!=null?m(x.price):''}</td><td>${m(x.qty!=null?x.qty*x.price:x.amount)}</td><td>${e.kind==='sell'?`<span class="${x.pnl>=0?'up':'dn'}">${sg(x.pnl)}</span><small>${esc(RS[x.reason]||'')}</small>`:''}</td><td class="tag">${esc(refText(e))}</td></tr>`}).join('')||'<tr><td colspan="8" class="tag">No transactions yet.</td></tr>';
+ $('tx-more').hidden=ev.length<=txLimit}
+const SC={total:['Total value','var(--ink)',''],deposited:['Money you put in','var(--mut)','5 4'],reserve:['Safety reserve','var(--go)',''],cash:['Trading capital','var(--brass)','']};
+async function loadAcct(){H=await api('/api/history');drawAcct()}
+function drawAcct(){$('ac-ser').innerHTML=Object.keys(SC).map(k=>`<label><input type="checkbox" data-ser="${k}" ${ser[k]?'checked':''}> <span style="color:${SC[k][1]}">${SC[k][0]}</span></label>`).join(' ');
+ const P0=H.points,P=P0.length===1?[P0[0],{...P0[0],ts:Date.now()/1000}]:P0,ks=Object.keys(SC).filter(k=>ser[k]),idx=v=>P[Math.max(0,Math.min(P.length-1,Math.round(v)))];
+ chart($('ac-svg'),$('ac-tip'),{empty:'The chart fills in as your account changes. Add funds to start.',series:P.length<2?[]:ks.map(k=>({label:SC[k][0],color:SC[k][1],dash:SC[k][2],pts:P.map((p,i)=>[i,p[k]])})),xFmt:v=>P.length?dshort(idx(v).ts*1000):'',tip:x=>{const p=idx(x);return `<b>${esc(when(p.ts))}</b>: `+ks.map(k=>`${SC[k][0]} ${m(p[k])}`).join('; ')}});
+ const D=H.days,svg=$('ac-days');
+ if(!D.length){svg.innerHTML='<text x="320" y="62" text-anchor="middle" fill="var(--mut)" font-size="14">No closed days yet. Press Close the day after trading.</text>';return}
+ const mx=Math.max(...D.map(d=>Math.abs(d.pnl)),1),n=Math.min(D.length,30),off=D.length-n,bw=Math.min(36,560/n-4),mid=60;
+ svg.innerHTML=`<line x1="20" x2="620" y1="${mid}" y2="${mid}" stroke="var(--mut)"/>`+D.slice(-n).map((d,i)=>{const h=Math.abs(d.pnl)/mx*50,x=30+i*(580/n);return `<rect tabindex="0" data-act="dayinfo" data-i="${off+i}" x="${x}" y="${d.pnl>=0?mid-h:mid}" width="${bw}" height="${Math.max(h,1)}" fill="${d.pnl>=0?'var(--go)':'var(--no)'}" style="cursor:pointer"><title>${when(d.ts)}: ${sg(d.pnl)}</title></rect>`}).join('')}
+const AUF=[['all','Everything'],['board','Board decisions'],['trades','Trades'],['money','Money in and out'],['days','Day closes']],AG={all:'',board:'board,scan,scan_error',trades:'buy,sell',money:'deposit,withdraw',days:'settle,auto_close'};
+async function loadAudit(){seg('au-filters',AUF,auKind,'aukind');const open=new Set([...document.querySelectorAll('#au-list details[open]')].map(d=>d.dataset.k));
+ const q=`kind=${AG[auKind]}&symbol=${encodeURIComponent(auSym)}`,ev=await api(`/api/events?${q}&limit=${auLimit+1}`);$('au-csv').href=`/api/events.csv?${q}`;
+ $('au-list').innerHTML=ev.slice(0,auLimit).map(e=>{const k=e.ts+'-'+e.kind;return `<details class="ev" data-k="${k}" ${open.has(k)?'open':''}><summary>${e.data.symbol?logo(e.data.symbol,20):''}<span class="tag">${when(e.ts)}</span><b>${esc(KL[e.kind]||e.kind)}</b><span>${esc(evText(e))}</span></summary><div class="det">${detail(e)}</div></details>`}).join('')||'<div class="empty">Nothing matches yet.</div>';
+ $('au-more').hidden=ev.length<=auLimit}
+
+/* ---------- ask the board ---------- */
+const rep=n=>ANA.reports.find(r=>r.name===n);
+function pickAsk(sym){if(sym!==askSym){askSym=sym;ANA=null}pkAsk&&pkAsk.set(sym);drawAskAll()}
+function drawAskAll(){$('askempty').hidden=!!askSym;drawAskHead();drawAskTabs();drawPanel()}
+function verdictHTML(){if(thinking)return '<p class="tag">The board is reading price, forecast, news and company data. This can take up to a minute the first time.</p>';
+ if(!ANA)return `<p class="tag">Press <b>Ask the board</b> for a verdict on ${esc(NAME[askSym]||askSym)}.</p>`;
+ const o=ANA,v=o.verdict,d=o.decision,p=o.proposal,cls=v.action==='ignore'||(p.side==='none'&&v.action==='buy')?'':d&&d.status==='blocked'?'dn':v.action==='buy'?'up':'dn';let a='';
+ if(o.executed)a=`<div class="msg">Order filled (paper): ${esc(o.executed.side)} ${o.executed.qty} ${esc(o.executed.symbol)} at ${m(o.executed.price)}.</div>`;
+ else if(o.declined)a='<div class="msg">Declined. Nothing was traded.</div>';
+ else if(d&&d.status==='approved'&&S.state.mode==='approve')a=`<div class="row" style="margin-top:8px"><button data-act="approve" data-id="${p.id}">Approve and place paper order</button><button class="ghost" data-act="decline">Decline</button></div>`;
+ else if(d&&d.status==='approved'&&S.state.mode==='observe')a='<div class="msg">The mode is Just watch, so no order will be placed.</div>';
+ else if(d&&d.status==='blocked')a=`<div class="msg">${esc(d.reason)}</div>`;
+ return `<div class="verdict ${cls}">${esc(headline(o))}</div><div class="tag">${Math.round(v.confidence)}% confident${p.side==='buy'?`, stop ${m(p.stop)}, target ${m(p.target)}`:''}, ${p.data_source==='demo'?'demo prices (Yahoo unreachable)':'live prices'}</div>`+(v.second_opinion&&['halved','vetoed'].includes(v.second_opinion.effect)?`<div class="msg">Second voice (student model): ${v.second_opinion.effect==='vetoed'?'objected strongly, so this buy was cancelled.':'had doubts, so the position size was halved.'}</div>`:'')+a}
+function drawAskHead(){const el=$('askhead');if(!askSym){el.innerHTML='';return}const h=S.positions.find(x=>x.symbol===askSym);
+ el.innerHTML=`<div class="box"><span class="stk">${logo(askSym,44)}<span class="stn"><b class="big">${esc(NAME[askSym]||askSym)}</b><small>${esc(askSym)}${h?', you own '+h.qty+' shares':''}</small></span></span>${verdictHTML()}</div>`}
+function drawAskTabs(){const el=$('asktabs');$('askpanel').hidden=!askSym;if(!askSym){el.innerHTML='';return}
+ el.innerHTML='<div class="seg" style="margin-top:12px">'+[['market','Live market'],['evidence','Evidence'],['prediction','Prediction'],['explanation','Explanation']].map(([v,l])=>`<button data-act="tab" data-v="${v}" class="${v===askTab?'on':''}">${l}</button>`).join('')+'</div>'}
+function drawPanel(){if(askSym)({market:panelMarket,evidence:panelEvidence,prediction:panelPred,explanation:panelExplain})[askTab]()}
+const needAsk=()=>{$('askpanel').innerHTML=thinking?'<div class="empty">The board is working...</div>':`<div class="empty">Ask the board to see this.<div style="margin-top:10px"><button data-act="askgo">Ask the board about ${esc(NAME[askSym]||askSym)}</button></div></div>`};
+function panelMarket(){const R={'1d':'1D','5d':'5D','1mo':'1M','6mo':'6M','1y':'1Y'};
+ $('askpanel').innerHTML=`<div class="row between"><div><span class="big" id="mk-p">--</span> <span id="mk-c" class="tag"></span></div><div class="seg">${Object.keys(R).map(r=>`<button data-act="range" data-v="${r}" class="${r===rng?'on':''}">${R[r]}</button>`).join('')}</div></div><svg id="mk-svg" class="chart"></svg><div id="mk-tip" class="tag">Hover or tap the chart to read prices.</div><p id="mk-note" class="tag"></p>`;loadMarket()}
+async function loadMarket(){const sym=askSym,r=rng,key=sym+'|'+r;if(MK[key])paintMarket(MK[key]);
+ try{const d=await api(`/api/chart/${encodeURIComponent(sym)}?range=${r}`);MK[key]=d;if(sym===askSym&&r===rng&&askTab==='market'&&$('mk-svg'))paintMarket(d)}catch(e){if($('mk-note'))$('mk-note').textContent='Could not load prices: '+e.message}}
+function paintMarket(d){const p=d.points,first=p[0][1],last=p[p.length-1][1],col=last>=first?'var(--go)':'var(--no)',ageMin=(Date.now()-p[p.length-1][0])/60000;
+ $('mk-p').textContent=m(last);$('mk-c').innerHTML=`<span class="${last>=first?'up':'dn'}">${pc(last/first-1)}</span> over this range`;
+ chart($('mk-svg'),$('mk-tip'),{series:[{label:'Price',color:col,pts:p}],xFmt:rng==='1d'?tshort:rng==='5d'?v=>dshort(v)+' '+tshort(v):dshort,yFmt:v=>'$'+v.toFixed(2),empty:'No price data'});
+ $('mk-note').textContent=d.source==='demo'?'Showing demo data because Yahoo Finance could not be reached.':ageMin>30&&(rng==='1d'||rng==='5d')?'The US market looks closed, so this is the latest available session.':'Live: refreshes every 15 seconds.'}
+function panelPred(){if(!ANA)return needAsk();const f=rep('Forecast'),d=f.data,lastH=d.history[d.history.length-1],kr=d.band_source==='kronos';
+ $('askpanel').innerHTML=`<p style="margin-top:0">${esc(f.summary)}</p><svg id="pr-svg" class="chart"></svg><div id="pr-tip" class="tag">Hover or tap the chart to read values.</div>
+ <div class="row tag" style="margin-top:6px"><span><b style="color:var(--ink)">&mdash;</b> past closes</span><span><b style="color:var(--brass)">- - -</b> ${kr?'Kronos median forecast':'forecast'}</span><span><span style="display:inline-block;width:12px;height:10px;background:var(--brass);opacity:.35"></span> ${kr?`middle 80% of the ${d.samples} futures Kronos simulated`:'typical range from recent volatility'}</span></div>
+ <p class="tag">Model: ${esc(f.model)}. The forecast is one possible path, not a promise. ${kr?`The line is the median of ${d.samples} futures that Kronos simulated, and the shaded range covers the middle 80% of them, so a wider band means Kronos is less sure. ${Math.round(d.p_up*d.samples)} of ${d.samples} simulated futures end higher.`:'Kronos is not running, so the shaded range is only a simple estimate from the stock\'s recent daily moves.'}</p>`;
+ chart($('pr-svg'),$('pr-tip'),{series:[{label:'Past close',color:'var(--ink)',pts:d.history},{label:'Forecast close',color:'var(--brass)',dash:'6 4',pts:[lastH].concat(d.path)}],band:{color:'var(--brass)',pts:[[lastH[0],d.last,d.last]].concat(d.cone)},xFmt:dshort,yFmt:v=>'$'+v.toFixed(0),
+  tip:(x,si,p)=>{const c=d.cone.find(k=>k[0]===x);return `<b>${esc(dshort(x))}</b> ${si?'Forecast':'Past'} close ${m(p[1])}${c&&si?`, ${kr?'Kronos range':'typical range'} ${m(c[1])} to ${m(c[2])}`:''}`}})}
+const EFF={agrees:'It agreed with the main model.',halved:'It had doubts, so the position size was halved.',vetoed:'It objected strongly, so the buy was cancelled.',overruled:'The main model disagreed with the student and made the final call.'};
+const soHTML=v=>{const o=v.second_opinion;return o?`<h3>Second voice (student model)</h3><p>${esc(o.action)}, ${Math.round(o.confidence)}% sure.${o.p_win!=null?' In similar past situations, buys worked out about '+Math.round(o.p_win*100)+'% of the time.':''} ${esc(EFF[o.effect]||'')}</p>`:''};
+const seatHTML=r=>`<div class="seat"><b>${esc(r.name)}</b><div class="bar"><i class="${r.score<0?'neg':''}" style="${r.score<0?`right:50%;width:${-r.score*50}%`:`left:50%;width:${r.score*50}%`}"></i></div><span>${r.score>0?'+':''}${r.score.toFixed(2)}</span><small>${esc(r.summary)} (${esc(r.model)})</small></div>`;
+const artHTML=a=>{const lab=a.severe?['Severe','b-sev']:a.tone>0.15?['Positive','b-pos']:a.tone<-0.15?['Negative','b-neg']:['Neutral',''],u=/^https?:\/\//.test(a.url||'')?a.url:null;
+ return `<div class="art"><span class="badge ${lab[1]}">${lab[0]}</span>${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(a.title)}</a>`:esc(a.title)}<div class="tag">${esc(a.publisher)}${a.age_h!=null?', '+ageH(a.age_h):''}</div>${a.summary?`<p>${esc(a.summary)}</p>`:''}</div>`};
+function panelEvidence(){if(!ANA)return needAsk();const se=rep('Sentiment'),arts=se.data.articles||[],mk=rep('Market').data;
+ $('askpanel').innerHTML=`<h3 style="margin-top:0">What each analyst found</h3>${ANA.reports.map(seatHTML).join('')}<h3>Market data behind the Market analyst</h3><p class="tag">Price ${m(mk.price)}, 20-day average ${m(mk.sma20)}, 50-day average ${m(mk.sma50)}, RSI ${Math.round(mk.rsi)}, typical daily move ${(mk.vol*100).toFixed(1)}%.</p>
+ <h3>Articles the Sentiment analyst read</h3><p class="tag">${esc(se.model)}. Newer articles count more, and serious news such as investigations, lawsuits or fraud is flagged.</p>`+(arts.length?arts.map(artHTML).join(''):'<div class="empty">No recent articles were found for this stock.</div>')}
+function panelExplain(){if(!ANA)return needAsk();const v=ANA.verdict,d=ANA.decision,p=ANA.proposal,paras=(v.explanation||'').split(/\n{2,}/).filter(Boolean).map(x=>`<p>${esc(x)}</p>`).join('');
+ $('askpanel').innerHTML=`<h3 style="margin-top:0">The verdict</h3><p><b>${esc(headline(ANA))}</b>, ${Math.round(v.confidence)}% confident.</p><div class="chair"><b>Short reason:</b> ${esc(v.reasoning)}</div>
+ <h3>Detailed explanation</h3>${paras||'<p class="tag">No detailed explanation was returned.</p>'}<p class="tag">Where the board disagreed: ${esc(String(v.dissent).replace(/\.$/,''))}. Decided by: ${esc(v.engine)}.</p>
+ ${soHTML(v)}<h3>What each analyst said</h3>${ANA.reports.map(seatHTML).join('')}`+(p.side==='buy'||p.side==='sell'?`<h3>The order</h3><p class="tag">${esc(p.side)} ${p.qty} shares at ${m(p.price)}${p.side==='buy'?`, stop ${m(p.stop)}, target ${m(p.target)}, worst case loss about ${m(d?d.projected_loss:0)}`:''}.</p>`:'')+
+ `<h3>Safety checks</h3>`+(d?d.checks.map(c=>`<div class="chk"><span class="${c.passed?'ok':'bad'}">${c.passed?'Pass':'Fail'}</span><span><b>${esc(c.label)}</b> ${esc(c.detail)}</span></div>`).join(''):'<p class="tag">No order was proposed, so there was nothing to check.</p>')}
+async function askgo(){if(!askSym){toast('Choose a stock first','err');return}ANA=null;thinking=true;drawAskAll();$('ask-go').disabled=true;
+ try{ANA=await api('/api/analyze',{symbol:askSym})}catch(e){toast(e.message,'err')}thinking=false;$('ask-go').disabled=false;drawAskAll();refresh()}
+function openAnalysis(o){askSym=o.proposal.symbol;ANA=o;askTab='explanation';if(location.hash!=='#ask/'+askSym)location.hash='#ask/'+askSym;else{pkAsk&&pkAsk.set(askSym);drawAskAll()}}
+async function approveId(id){try{const r=await api('/api/proposals/'+id+'/approve',{});if(ANA&&ANA.proposal.id===id)ANA=r;toast('Order filled (paper)')}catch(e){toast(e.message,'err')}await refresh()}
+
+/* ---------- actions (event delegation) ---------- */
+const ACT={
+ mode:t=>go(()=>api('/api/settings',{mode:t.dataset.v})),preset:t=>go(()=>api('/api/settings',{preset:t.dataset.v})),
+ sub:t=>{location.hash='#history/'+t.dataset.v},
+ aukind:t=>{auKind=t.dataset.v;auLimit=20;loadAudit()},aumore:()=>{auLimit+=20;loadAudit()},txmore:()=>{txLimit+=25;loadTx()},
+ tab:t=>{askTab=t.dataset.v;drawAskTabs();drawPanel()},range:t=>{rng=t.dataset.v;panelMarket()},
+ askgo,approve:t=>approveId(t.dataset.id),approvep:t=>approveId(t.dataset.id),
+ decline:async()=>{try{await api('/api/proposals/'+ANA.proposal.id+'/decline',{})}catch(e){}ANA.declined=true;drawAskHead();refresh()},
+ train:()=>go(()=>api('/api/learning/train',{}).then(d=>toast(d.train.ok?`Student trained on ${d.train.n_obs} decisions`+(d.train.agreement!=null?`, agrees with the main model ${Math.round(d.train.agreement*100)}%`:''):d.train.reason))),
+ opena:t=>openAnalysis(PD[+t.dataset.i]),openrv:t=>openAnalysis(RV[+t.dataset.i]),
+ dayinfo:t=>{const d=H.days[+t.dataset.i];$('ac-dayinfo').textContent=`${when(d.ts)}: `+(d.pnl>0?`${sg(d.pnl)} profit. ${m(d.to_reserve)} to reserve, ${m(d.to_withdraw)} withdrawable, ${m(d.reinvested||0)} reinvested.`:d.pnl<0?`${sg(d.pnl)} loss. ${m(d.topup)} refilled from reserve.`:'No trades closed.')},
+ scannow:()=>go(()=>api('/api/scan',{}).then(()=>toast('Scan started. Results appear here as they happen.'))),
+ rmw:t=>{const l=S.state.watchlist.filter(x=>x!==t.dataset.sym);if(!l.length){toast('Keep at least one stock','err');return}go(()=>api('/api/settings',{watchlist:l.join(',')}))},
+ wlpreset:t=>go(()=>api('/api/settings',{watchlist:t.dataset.v})),
+ fund:openFund,fundclose:()=>$('fund').close(),famt:t=>{$('f-amt').value=t.dataset.v},
+ demofund:async()=>{const a=+$('f-amt').value;try{await api('/api/deposit',{amount:a});$('fund').close();toast('Added '+m(a)+' demo funds')}catch(e){toast(e.message,'err')}refresh()},
+ wd:async()=>{const v=await dlg({title:'Withdraw profit',body:'Up to '+m(S.state.withdrawable)+' is available.',input:true,def:String(Math.floor(S.state.withdrawable*100)/100),ok:'Withdraw'});if(!v)return;
+  try{const d=await api('/api/withdraw',{amount:+v});toast('Sent '+m(v)+' ('+(d.payout.simulated?'demo payout':'PayPal payout '+d.payout.id)+')')}catch(e){toast(e.message,'err')}refresh()},
+ settle:async()=>{try{const d=await api('/api/settle',{}),r=d.result;
+  say((r.pnl>0?`Today's results settled: ${m(r.pnl)} profit. ${m(r.to_reserve)} to reserve, ${m(r.to_withdraw)} withdrawable, ${m(r.reinvested)} reinvested.`:r.pnl<0?`Today's results settled: ${m(-r.pnl)} loss. ${m(r.topup)} moved from reserve to trading capital.`:'No closed trades to settle today.')+' Trading continues, with a fresh daily loss budget.'+(r.paused?' Trading is paused after a large drop; press Resume trading when ready.':''))}catch(e){toast(e.message,'err')}refresh()},
+ resume:async()=>{if(await dlg({title:'Resume trading?',body:'Review your positions first. The pause exists because of a large drop.',ok:'Resume'}))go(()=>api('/api/resume',{}))},
+ sell:async t=>{const s=t.dataset.sym;if(!await dlg({title:'Sell '+(NAME[s]||s)+'?',body:'This sells all your shares at the current price.',ok:'Sell'}))return;go(()=>api('/api/positions/'+encodeURIComponent(s)+'/sell',{}).then(()=>toast('Sold '+s)))},
+ review:async()=>{reviewing=true;RV=[];drawPortfolio();for(const p of S.positions){try{RV.push(await api('/api/analyze',{symbol:p.symbol}))}catch(e){}}reviewing=false;drawPortfolio();refresh()}};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(t&&ACT[t.dataset.act])ACT[t.dataset.act](t,e)});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.ser){ser[e.target.dataset.ser]=e.target.checked;drawAcct()}});
+
+/* ---------- live updates ---------- */
+let rt=null,es=null;
+async function refresh(){try{S=await api('/api/state');PD=await api('/api/pending');drawHome();drawPortfolio();drawAskHead();
+  const fresh=S.events.filter(e=>e.ts>lastEv&&['buy','sell','settle','auto_close','scan_error','deposit','withdraw'].includes(e.kind));
+  fresh.reverse().forEach(e=>toast(evText(e),e.kind==='scan_error'?'err':''));if(S.events.length)lastEv=Math.max(lastEv,S.events[0].ts);
+  if(view==='history')loadHistory();pill(true)}catch(e){pill(false)}}
+const sched=()=>{clearTimeout(rt);rt=setTimeout(refresh,250)};
+function pill(ok){const p=$('live');p.className='pill '+(ok?'ok':'bad');p.lastElementChild.textContent=ok?'Live':'Reconnecting'}
+function live(){try{es=new EventSource('/api/stream');es.onmessage=sched;es.onopen=()=>pill(true);es.onerror=()=>pill(false)}catch(e){}}
+setInterval(()=>{if(!es||es.readyState!==1)refresh()},8000);
+setInterval(()=>{if(view==='ask'&&askSym&&askTab==='market'&&!document.hidden&&(rng==='1d'||rng==='5d'))loadMarket()},15000);
+
+(async()=>{
+ try{STOCKS=await api('/api/stocks');STOCKS.forEach(s=>NAME[s.symbol]=s.name)}catch(e){}
+ const q=new URLSearchParams(location.search);
+ if(q.get('paypal')==='return'&&q.get('token')){try{await api('/api/deposit/capture',{order_id:q.get('token')});toast('PayPal payment received')}catch(e){toast(e.message,'err')}history.replaceState({},'',location.pathname+location.hash)}
+ try{S=await api('/api/state');PD=await api('/api/pending');lastEv=(S.events[0]||{ts:0}).ts}catch(e){say('Could not reach the Coin Board server: '+e.message);return}
+ pkAsk=mkPicker($('ask-pick'),{ph:'Choose a stock by name or ticker',onPick:s=>{location.hash='#ask/'+s}});
+ pkWl=mkPicker($('wl-pick'),{ph:'Add a stock to your watchlist',reset:true,onPick:s=>go(()=>api('/api/settings',{watchlist:[...S.state.watchlist.filter(x=>x!==s),s].join(',')}))});
+ pkTx=mkPicker($('tx-pick'),{all:'All stocks',onPick:s=>{txSym=s;txLimit=25;loadTx()}});
+ pkAu=mkPicker($('au-pick'),{all:'All stocks',onPick:s=>{auSym=s;auLimit=20;loadAudit()}});
+ drawHome();drawPortfolio();route();live();pill(true)})();
+</script></body></html>

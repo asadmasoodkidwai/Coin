@@ -1,0 +1,13 @@
+.env
+.venv/
+coin.db
+__pycache__/
+.pytest_cache/
+.vs/
+*.pyc
+*.egg-info/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.db-journal

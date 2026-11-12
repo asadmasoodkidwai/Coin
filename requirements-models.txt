@@ -1,0 +1,6 @@
+# Optional: real analyst models. Without these, Coin Board uses labelled baselines.
+torch
+transformers
+einops
+huggingface_hub
+safetensors
